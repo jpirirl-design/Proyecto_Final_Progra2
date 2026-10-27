@@ -1,0 +1,17 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Maven
+target/
+
+# Java
+*.class
+
+# Configuración privada
+.env
+*.log
+
+# Python
+.venv/
+__pycache__/
