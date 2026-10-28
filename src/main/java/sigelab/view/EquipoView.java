@@ -86,9 +86,87 @@ public class EquipoView extends JFrame {
         JPanel botones = new JPanel(new FlowLayout());
 
         JButton btnGuardar = new JButton("Guardar");
+
+        btnGuardar.addActionListener(e -> {
+
+            String codigo = txtCodigo.getText().trim();
+            String nombre = txtNombre.getText().trim();
+            String marca = txtMarca.getText().trim();
+            String modelo = txtModelo.getText().trim();
+            String serie = txtSerie.getText().trim();
+
+            if (codigo.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el código de inventario.");
+                txtCodigo.requestFocus();
+                return;
+            }
+
+            if (nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el nombre del equipo.");
+                txtNombre.requestFocus();
+                return;
+            }
+
+            if (cbTipo.getSelectedIndex() == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un tipo de equipo.");
+                return;
+            }
+
+            if (cbLaboratorio.getSelectedIndex() == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un laboratorio.");
+                return;
+            }
+
+            if (marca.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar la marca del equipo.");
+                txtMarca.requestFocus();
+                return;
+            }
+
+            if (modelo.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el modelo del equipo.");
+                txtModelo.requestFocus();
+                return;
+            }
+
+            if (serie.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el número de serie.");
+                txtSerie.requestFocus();
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Datos validados correctamente.");
+        });
+
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Dar de baja");
         JButton btnLimpiar = new JButton("Limpiar");
+
+        btnLimpiar.addActionListener(e -> {
+
+            txtCodigo.setText("");
+            txtNombre.setText("");
+            txtMarca.setText("");
+            txtModelo.setText("");
+            txtSerie.setText("");
+            txtObservaciones.setText("");
+
+            cbTipo.setSelectedIndex(0);
+            cbLaboratorio.setSelectedIndex(0);
+            cbEstado.setSelectedIndex(0);
+
+            tablaEquipos.clearSelection();
+            txtCodigo.requestFocus();
+        });
+
 
         botones.add(btnGuardar);
         botones.add(btnEditar);

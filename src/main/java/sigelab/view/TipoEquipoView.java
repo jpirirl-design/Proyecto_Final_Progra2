@@ -39,9 +39,39 @@ public class TipoEquipoView extends JFrame {
         JPanel botones = new JPanel(new FlowLayout());
 
         JButton btnGuardar = new JButton("Guardar");
+
+        btnGuardar.addActionListener(e -> {
+
+            String nombre = txtNombre.getText().trim();
+            String descripcion = txtDescripcion.getText().trim();
+
+            if (nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el nombre del tipo de equipo.");
+                txtNombre.requestFocus();
+                return;
+            }
+
+            if (descripcion.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar una descripción.");
+                txtDescripcion.requestFocus();
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Datos validados correctamente.");
+        });
+
         JButton btnEditar = new JButton("Editar");
         JButton btnEliminar = new JButton("Eliminar");
         JButton btnLimpiar = new JButton("Limpiar");
+        btnLimpiar.addActionListener(e -> {
+            txtNombre.setText("");
+            txtDescripcion.setText("");
+            tablaTipos.clearSelection();
+            txtNombre.requestFocus();
+        });
 
         botones.add(btnGuardar);
         botones.add(btnEditar);

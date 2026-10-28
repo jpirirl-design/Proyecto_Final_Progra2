@@ -63,9 +63,56 @@ public class LaboratorioView extends JFrame {
         JPanel botones = new JPanel(new FlowLayout());
 
         JButton btnGuardar = new JButton("Guardar");
+
+        btnGuardar.addActionListener(e -> {
+
+            String codigo = txtCodigo.getText().trim();
+            String nombre = txtNombre.getText().trim();
+            String ubicacion = txtUbicacion.getText().trim();
+            int capacidad = (int) spCapacidad.getValue();
+
+            if (codigo.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el código del laboratorio.");
+                txtCodigo.requestFocus();
+                return;
+            }
+
+            if (nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el nombre del laboratorio.");
+                txtNombre.requestFocus();
+                return;
+            }
+
+            if (ubicacion.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar la ubicación del laboratorio.");
+                txtUbicacion.requestFocus();
+                return;
+            }
+
+            if (capacidad <= 0) {
+                JOptionPane.showMessageDialog(this,
+                        "La capacidad debe ser mayor que cero.");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Datos validados correctamente.");
+        });
+
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Desactivar");
         JButton btnLimpiar = new JButton("Limpiar");
+        btnLimpiar.addActionListener(e -> {
+            txtCodigo.setText("");
+            txtNombre.setText("");
+            txtUbicacion.setText("");
+            spCapacidad.setValue(1);
+            cbEstado.setSelectedIndex(0);
+            tablaLaboratorios.clearSelection();
+        });
 
         botones.add(btnGuardar);
         botones.add(btnEditar);

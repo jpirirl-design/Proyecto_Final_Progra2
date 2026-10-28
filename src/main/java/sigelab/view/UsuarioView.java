@@ -70,9 +70,80 @@ public class UsuarioView extends JFrame {
         JPanel botones = new JPanel(new FlowLayout());
 
         JButton btnGuardar = new JButton("Guardar");
+
+        btnGuardar.addActionListener(e -> {
+
+            String nombre = txtNombre.getText().trim();
+            String apellido = txtApellido.getText().trim();
+            String usuario = txtUsuario.getText().trim();
+            String correo = txtCorreo.getText().trim();
+            char[] password = txtPassword.getPassword();
+
+            if (nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el nombre.");
+                txtNombre.requestFocus();
+                return;
+            }
+
+            if (apellido.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el apellido.");
+                txtApellido.requestFocus();
+                return;
+            }
+
+            if (usuario.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar el nombre de usuario.");
+                txtUsuario.requestFocus();
+                return;
+            }
+
+            if (!correo.matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$")) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe ingresar un correo electrónico válido.");
+                txtCorreo.requestFocus();
+                return;
+            }
+
+            if (password.length < 8) {
+                JOptionPane.showMessageDialog(this,
+                        "La contraseña debe tener al menos 8 caracteres.");
+                txtPassword.requestFocus();
+                return;
+            }
+
+            if (cbRol.getSelectedIndex() == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un rol.");
+                return;
+            }
+
+            java.util.Arrays.fill(password, '\0');
+
+            JOptionPane.showMessageDialog(this,
+                    "Datos validados correctamente.");
+        });
+
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Desactivar");
         JButton btnLimpiar = new JButton("Limpiar");
+
+        btnLimpiar.addActionListener(e -> {
+            txtNombre.setText("");
+            txtApellido.setText("");
+            txtUsuario.setText("");
+            txtCorreo.setText("");
+            txtPassword.setText("");
+
+            cbRol.setSelectedIndex(0);
+            cbEstado.setSelectedIndex(0);
+
+            tablaUsuarios.clearSelection();
+            txtNombre.requestFocus();
+        });
+
 
         botones.add(btnGuardar);
         botones.add(btnEditar);
