@@ -114,7 +114,54 @@ public class EquipoView extends JFrame {
 
 
         JButton btnEditar = new JButton("Editar");
+
+        btnEditar.addActionListener(e -> {
+
+            int fila = tablaEquipos.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un equipo para editar.");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Equipo seleccionado correctamente.\n"
+                            + "La edición estará disponible al conectar SQL Server.");
+        });
+
+
+
+
         JButton btnDesactivar = new JButton("Dar de baja");
+
+        btnDesactivar.addActionListener(e -> {
+
+            int fila = tablaEquipos.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un equipo para darlo de baja.");
+                return;
+            }
+
+            int respuesta = JOptionPane.showConfirmDialog(
+                    this,
+                    "¿Está seguro de que desea dar de baja este equipo?",
+                    "Confirmar baja",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (respuesta == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this,
+                        "Confirmación recibida.\n"
+                                + "La baja estará disponible al conectar SQL Server.");
+            }
+        });
+
+
+
         JButton btnLimpiar = new JButton("Limpiar");
 
         btnLimpiar.addActionListener(e -> {

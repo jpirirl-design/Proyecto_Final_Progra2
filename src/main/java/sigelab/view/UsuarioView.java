@@ -104,7 +104,51 @@ public class UsuarioView extends JFrame {
 
 
         JButton btnEditar = new JButton("Editar");
+        btnEditar.addActionListener(e -> {
+
+            int fila = tablaUsuarios.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un usuario para editar.");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Usuario seleccionado correctamente.\n"
+                            + "La edición estará disponible al conectar SQL Server.");
+        });
+
+
+
         JButton btnDesactivar = new JButton("Desactivar");
+        btnDesactivar.addActionListener(e -> {
+
+            int fila = tablaUsuarios.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un usuario para desactivarlo.");
+                return;
+            }
+
+            int respuesta = JOptionPane.showConfirmDialog(
+                    this,
+                    "¿Está seguro de que desea desactivar este usuario?",
+                    "Confirmar desactivación",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (respuesta == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this,
+                        "Confirmación recibida.\n"
+                                + "La desactivación estará disponible al conectar SQL Server.");
+            }
+        });
+
+
+
         JButton btnLimpiar = new JButton("Limpiar");
 
         btnLimpiar.addActionListener(e -> {

@@ -62,7 +62,52 @@ public class TipoEquipoView extends JFrame {
 
 
         JButton btnEditar = new JButton("Editar");
+        btnEditar.addActionListener(e -> {
+
+            int fila = tablaTipos.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un tipo de equipo para editar.");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Tipo de equipo seleccionado.\n"
+                            + "La edición estará disponible al conectar SQL Server.");
+        });
+
+
+
+
         JButton btnEliminar = new JButton("Eliminar");
+        btnEliminar.addActionListener(e -> {
+
+            int fila = tablaTipos.getSelectedRow();
+
+            if (fila == -1) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe seleccionar un tipo de equipo para eliminar.");
+                return;
+            }
+
+            int respuesta = JOptionPane.showConfirmDialog(
+                    this,
+                    "¿Está seguro de que desea eliminar este tipo de equipo?",
+                    "Confirmar eliminación",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (respuesta == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this,
+                        "Confirmación recibida.\n"
+                                + "La eliminación estará disponible al conectar SQL Server.");
+            }
+        });
+
+
+
         JButton btnLimpiar = new JButton("Limpiar");
         btnLimpiar.addActionListener(e -> {
             txtNombre.setText("");
