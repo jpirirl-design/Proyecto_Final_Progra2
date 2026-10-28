@@ -1,4 +1,5 @@
 package sigelab.view;
+import sigelab.controller.LoginController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,6 +30,31 @@ public class LoginView extends JFrame {
 
         panel.add(new JLabel(""));
         btnIngresar = new JButton("Ingresar");
+
+        btnIngresar.addActionListener(e -> {
+
+            LoginController controller = new LoginController();
+            char[] password = txtPassword.getPassword();
+
+            try {
+                String mensaje = controller.validarCredenciales(
+                        txtUsuario.getText(),
+                        password
+                );
+
+                if (mensaje != null) {
+                    JOptionPane.showMessageDialog(this, mensaje);
+                    return;
+                }
+
+                JOptionPane.showMessageDialog(this,
+                        "Campos completos. Autenticación pendiente de implementar.");
+
+            } finally {
+                java.util.Arrays.fill(password, '\0');
+            }
+        });
+
         panel.add(btnIngresar);
 
         add(panel);

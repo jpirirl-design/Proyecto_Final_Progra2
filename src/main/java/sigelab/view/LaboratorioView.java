@@ -1,5 +1,6 @@
 
 package sigelab.view;
+import sigelab.controller.LaboratorioController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -58,49 +59,71 @@ public class LaboratorioView extends JFrame {
         };
 
         tablaLaboratorios = new JTable(modelo);
+
+        tablaLaboratorios.getSelectionModel().addListSelectionListener(e -> {
+
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+
+            int fila = tablaLaboratorios.getSelectedRow();
+
+            if (fila == -1) {
+                return;
+            }
+
+            int filaModelo = tablaLaboratorios.convertRowIndexToModel(fila);
+
+            txtCodigo.setText(
+                    modelo.getValueAt(filaModelo, 1).toString()
+            );
+
+            txtNombre.setText(
+                    modelo.getValueAt(filaModelo, 2).toString()
+            );
+
+            txtUbicacion.setText(
+                    modelo.getValueAt(filaModelo, 3).toString()
+            );
+
+            spCapacidad.setValue(
+                    Integer.parseInt(
+                            modelo.getValueAt(filaModelo, 4).toString()
+                    )
+            );
+
+            cbEstado.setSelectedItem(
+                    modelo.getValueAt(filaModelo, 5).toString()
+            );
+        });
+
         tablaLaboratorios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JPanel botones = new JPanel(new FlowLayout());
 
         JButton btnGuardar = new JButton("Guardar");
 
+
         btnGuardar.addActionListener(e -> {
 
-            String codigo = txtCodigo.getText().trim();
-            String nombre = txtNombre.getText().trim();
-            String ubicacion = txtUbicacion.getText().trim();
-            int capacidad = (int) spCapacidad.getValue();
+            LaboratorioController controller = new LaboratorioController();
 
-            if (codigo.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el código del laboratorio.");
-                txtCodigo.requestFocus();
-                return;
-            }
+            String mensaje = controller.validarLaboratorio(
+                    txtCodigo.getText(),
+                    txtNombre.getText(),
+                    txtUbicacion.getText(),
+                    (int) spCapacidad.getValue()
+            );
 
-            if (nombre.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el nombre del laboratorio.");
-                txtNombre.requestFocus();
-                return;
-            }
-
-            if (ubicacion.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar la ubicación del laboratorio.");
-                txtUbicacion.requestFocus();
-                return;
-            }
-
-            if (capacidad <= 0) {
-                JOptionPane.showMessageDialog(this,
-                        "La capacidad debe ser mayor que cero.");
+            if (mensaje != null) {
+                JOptionPane.showMessageDialog(this, mensaje);
                 return;
             }
 
             JOptionPane.showMessageDialog(this,
                     "Datos validados correctamente.");
         });
+
 
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Desactivar");

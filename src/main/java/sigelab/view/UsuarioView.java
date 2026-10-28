@@ -1,5 +1,6 @@
 
 package sigelab.view;
+import sigelab.controller.UsuarioController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -71,60 +72,36 @@ public class UsuarioView extends JFrame {
 
         JButton btnGuardar = new JButton("Guardar");
 
+
         btnGuardar.addActionListener(e -> {
 
-            String nombre = txtNombre.getText().trim();
-            String apellido = txtApellido.getText().trim();
-            String usuario = txtUsuario.getText().trim();
-            String correo = txtCorreo.getText().trim();
+            UsuarioController controller = new UsuarioController();
+
             char[] password = txtPassword.getPassword();
 
-            if (nombre.isEmpty()) {
+            try {
+                String mensaje = controller.validarUsuario(
+                        txtNombre.getText(),
+                        txtApellido.getText(),
+                        txtUsuario.getText(),
+                        txtCorreo.getText(),
+                        password,
+                        (String) cbRol.getSelectedItem()
+                );
+
+                if (mensaje != null) {
+                    JOptionPane.showMessageDialog(this, mensaje);
+                    return;
+                }
+
                 JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el nombre.");
-                txtNombre.requestFocus();
-                return;
+                        "Datos validados correctamente.");
+
+            } finally {
+                java.util.Arrays.fill(password, '\0');
             }
-
-            if (apellido.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el apellido.");
-                txtApellido.requestFocus();
-                return;
-            }
-
-            if (usuario.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el nombre de usuario.");
-                txtUsuario.requestFocus();
-                return;
-            }
-
-            if (!correo.matches("^[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}$")) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar un correo electrónico válido.");
-                txtCorreo.requestFocus();
-                return;
-            }
-
-            if (password.length < 8) {
-                JOptionPane.showMessageDialog(this,
-                        "La contraseña debe tener al menos 8 caracteres.");
-                txtPassword.requestFocus();
-                return;
-            }
-
-            if (cbRol.getSelectedIndex() == 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe seleccionar un rol.");
-                return;
-            }
-
-            java.util.Arrays.fill(password, '\0');
-
-            JOptionPane.showMessageDialog(this,
-                    "Datos validados correctamente.");
         });
+
 
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Desactivar");
@@ -164,6 +141,49 @@ public class UsuarioView extends JFrame {
         };
 
         tablaUsuarios = new JTable(modelo);
+
+        tablaUsuarios.getSelectionModel().addListSelectionListener(e -> {
+
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+
+            int fila = tablaUsuarios.getSelectedRow();
+
+            if (fila == -1) {
+                return;
+            }
+
+            int filaModelo = tablaUsuarios.convertRowIndexToModel(fila);
+
+            txtNombre.setText(
+                    modelo.getValueAt(filaModelo, 1).toString()
+            );
+
+            txtApellido.setText(
+                    modelo.getValueAt(filaModelo, 2).toString()
+            );
+
+            txtUsuario.setText(
+                    modelo.getValueAt(filaModelo, 3).toString()
+            );
+
+            txtCorreo.setText(
+                    modelo.getValueAt(filaModelo, 4).toString()
+            );
+
+            cbRol.setSelectedItem(
+                    modelo.getValueAt(filaModelo, 5).toString()
+            );
+
+            cbEstado.setSelectedItem(
+                    modelo.getValueAt(filaModelo, 6).toString()
+            );
+
+            // Nunca cargar contraseñas desde la tabla.
+            txtPassword.setText("");
+        });
+
         tablaUsuarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JPanel superior = new JPanel(new BorderLayout(10, 10));

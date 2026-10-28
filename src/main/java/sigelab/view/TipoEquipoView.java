@@ -1,5 +1,6 @@
 
 package sigelab.view;
+import sigelab.controller.TipoEquipoController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -40,28 +41,25 @@ public class TipoEquipoView extends JFrame {
 
         JButton btnGuardar = new JButton("Guardar");
 
+
         btnGuardar.addActionListener(e -> {
 
-            String nombre = txtNombre.getText().trim();
-            String descripcion = txtDescripcion.getText().trim();
+            TipoEquipoController controller = new TipoEquipoController();
 
-            if (nombre.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el nombre del tipo de equipo.");
-                txtNombre.requestFocus();
-                return;
-            }
+            String mensaje = controller.validarTipoEquipo(
+                    txtNombre.getText(),
+                    txtDescripcion.getText()
+            );
 
-            if (descripcion.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar una descripción.");
-                txtDescripcion.requestFocus();
+            if (mensaje != null) {
+                JOptionPane.showMessageDialog(this, mensaje);
                 return;
             }
 
             JOptionPane.showMessageDialog(this,
                     "Datos validados correctamente.");
         });
+
 
         JButton btnEditar = new JButton("Editar");
         JButton btnEliminar = new JButton("Eliminar");
@@ -87,8 +85,31 @@ public class TipoEquipoView extends JFrame {
                 return false;
             }
         };
-
         tablaTipos = new JTable(modelo);
+
+        tablaTipos.getSelectionModel().addListSelectionListener(e -> {
+
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+
+            int fila = tablaTipos.getSelectedRow();
+
+            if (fila == -1) {
+                return;
+            }
+
+            int filaModelo = tablaTipos.convertRowIndexToModel(fila);
+
+            txtNombre.setText(
+                    modelo.getValueAt(filaModelo, 1).toString()
+            );
+
+            txtDescripcion.setText(
+                    modelo.getValueAt(filaModelo, 2).toString()
+            );
+        });
+
         tablaTipos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JPanel superior = new JPanel(new BorderLayout(10, 10));

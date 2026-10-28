@@ -1,5 +1,6 @@
 
 package sigelab.view;
+import sigelab.controller.EquipoController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -87,64 +88,30 @@ public class EquipoView extends JFrame {
 
         JButton btnGuardar = new JButton("Guardar");
 
+
         btnGuardar.addActionListener(e -> {
 
-            String codigo = txtCodigo.getText().trim();
-            String nombre = txtNombre.getText().trim();
-            String marca = txtMarca.getText().trim();
-            String modelo = txtModelo.getText().trim();
-            String serie = txtSerie.getText().trim();
+            EquipoController controller = new EquipoController();
 
-            if (codigo.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el código de inventario.");
-                txtCodigo.requestFocus();
-                return;
-            }
+            String mensaje = controller.validarEquipo(
+                    txtCodigo.getText(),
+                    txtNombre.getText(),
+                    (String) cbTipo.getSelectedItem(),
+                    (String) cbLaboratorio.getSelectedItem(),
+                    txtMarca.getText(),
+                    txtModelo.getText(),
+                    txtSerie.getText()
+            );
 
-            if (nombre.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el nombre del equipo.");
-                txtNombre.requestFocus();
-                return;
-            }
-
-            if (cbTipo.getSelectedIndex() == 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe seleccionar un tipo de equipo.");
-                return;
-            }
-
-            if (cbLaboratorio.getSelectedIndex() == 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe seleccionar un laboratorio.");
-                return;
-            }
-
-            if (marca.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar la marca del equipo.");
-                txtMarca.requestFocus();
-                return;
-            }
-
-            if (modelo.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el modelo del equipo.");
-                txtModelo.requestFocus();
-                return;
-            }
-
-            if (serie.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe ingresar el número de serie.");
-                txtSerie.requestFocus();
+            if (mensaje != null) {
+                JOptionPane.showMessageDialog(this, mensaje);
                 return;
             }
 
             JOptionPane.showMessageDialog(this,
                     "Datos validados correctamente.");
         });
+
 
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Dar de baja");
@@ -186,6 +153,54 @@ public class EquipoView extends JFrame {
         };
 
         tablaEquipos = new JTable(modelo);
+
+        tablaEquipos.getSelectionModel().addListSelectionListener(e -> {
+
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+
+            int fila = tablaEquipos.getSelectedRow();
+
+            if (fila == -1) {
+                return;
+            }
+
+            int filaModelo = tablaEquipos.convertRowIndexToModel(fila);
+
+            txtCodigo.setText(
+                    modelo.getValueAt(filaModelo, 1).toString()
+            );
+
+            txtNombre.setText(
+                    modelo.getValueAt(filaModelo, 2).toString()
+            );
+
+            cbTipo.setSelectedItem(
+                    modelo.getValueAt(filaModelo, 3).toString()
+            );
+
+            txtMarca.setText(
+                    modelo.getValueAt(filaModelo, 4).toString()
+            );
+
+            txtModelo.setText(
+                    modelo.getValueAt(filaModelo, 5).toString()
+            );
+
+            txtSerie.setText(
+                    modelo.getValueAt(filaModelo, 6).toString()
+            );
+
+            cbLaboratorio.setSelectedItem(
+                    modelo.getValueAt(filaModelo, 7).toString()
+            );
+
+            cbEstado.setSelectedItem(
+                    modelo.getValueAt(filaModelo, 8).toString()
+            );
+        });
+
         tablaEquipos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaEquipos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
