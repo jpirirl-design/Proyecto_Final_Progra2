@@ -1,12 +1,17 @@
 
 package sigelab.view;
+
 import sigelab.controller.LaboratorioController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.SQLException;
 
 public class LaboratorioView extends JFrame {
+
+    private final LaboratorioController controller =
+            new LaboratorioController();
 
     private JTextField txtCodigo;
     private JTextField txtNombre;
@@ -14,6 +19,7 @@ public class LaboratorioView extends JFrame {
     private JSpinner spCapacidad;
     private JComboBox<String> cbEstado;
     private JTable tablaLaboratorios;
+    private DefaultTableModel modelo;
 
     public LaboratorioView() {
         setTitle("SIGELAB - Gestión de Laboratorios");
@@ -22,36 +28,36 @@ public class LaboratorioView extends JFrame {
         setLocationRelativeTo(null);
 
         JPanel principal = new JPanel(new BorderLayout(10, 10));
-        principal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        principal.setBorder(
+                BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JPanel formulario = new JPanel(new GridLayout(5, 2, 10, 10));
 
         txtCodigo = new JTextField();
         txtNombre = new JTextField();
         txtUbicacion = new JTextField();
-        spCapacidad = new JSpinner(new SpinnerNumberModel(1, 1, 10000, 1));
-        cbEstado = new JComboBox<>(new String[]{"ACTIVO", "INACTIVO"});
+        spCapacidad = new JSpinner(
+                new SpinnerNumberModel(1, 1, 10000, 1));
+        cbEstado = new JComboBox<>(
+                new String[]{"ACTIVO", "INACTIVO"});
 
         formulario.add(new JLabel("Código:"));
         formulario.add(txtCodigo);
-
         formulario.add(new JLabel("Nombre:"));
         formulario.add(txtNombre);
-
         formulario.add(new JLabel("Ubicación:"));
         formulario.add(txtUbicacion);
-
         formulario.add(new JLabel("Capacidad:"));
         formulario.add(spCapacidad);
-
         formulario.add(new JLabel("Estado:"));
         formulario.add(cbEstado);
 
         String[] columnas = {
-                "ID", "Código", "Nombre", "Ubicación", "Capacidad", "Estado"
+                "ID", "Código", "Nombre",
+                "Ubicación", "Capacidad", "Estado"
         };
 
-        DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
+        modelo = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int fila, int columna) {
                 return false;
@@ -59,133 +65,107 @@ public class LaboratorioView extends JFrame {
         };
 
         tablaLaboratorios = new JTable(modelo);
+        tablaLaboratorios.setSelectionMode(
+                ListSelectionModel.SINGLE_SELECTION);
 
-        tablaLaboratorios.getSelectionModel().addListSelectionListener(e -> {
+        tablaLaboratorios.getSelectionModel()
+                .addListSelectionListener(e -> {
+                    if (!e.getValueIsAdjusting()) {
+                        int fila = tablaLaboratorios.getSelectedRow();
+                        if (fila >= 0) {
+                            int m = tablaLaboratorios
+                                    .convertRowIndexToModel(fila);
 
-            if (e.getValueIsAdjusting()) {
-                return;
-            }
-
-            int fila = tablaLaboratorios.getSelectedRow();
-
-            if (fila == -1) {
-                return;
-            }
-
-            int filaModelo = tablaLaboratorios.convertRowIndexToModel(fila);
-
-            txtCodigo.setText(
-                    modelo.getValueAt(filaModelo, 1).toString()
-            );
-
-            txtNombre.setText(
-                    modelo.getValueAt(filaModelo, 2).toString()
-            );
-
-            txtUbicacion.setText(
-                    modelo.getValueAt(filaModelo, 3).toString()
-            );
-
-            spCapacidad.setValue(
-                    Integer.parseInt(
-                            modelo.getValueAt(filaModelo, 4).toString()
-                    )
-            );
-
-            cbEstado.setSelectedItem(
-                    modelo.getValueAt(filaModelo, 5).toString()
-            );
-        });
-
-        tablaLaboratorios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        JPanel botones = new JPanel(new FlowLayout());
+                            txtCodigo.setText(
+                                    modelo.getValueAt(m, 1).toString());
+                            txtNombre.setText(
+                                    modelo.getValueAt(m, 2).toString());
+                            txtUbicacion.setText(
+                                    modelo.getValueAt(m, 3).toString());
+                            spCapacidad.setValue(
+                                    modelo.getValueAt(m, 4));
+                            cbEstado.setSelectedItem(
+                                    modelo.getValueAt(m, 5).toString());
+                        }
+                    }
+                });
 
         JButton btnGuardar = new JButton("Guardar");
-
+        JButton btnEditar = new JButton("Editar");
+        JButton btnDesactivar = new JButton("Desactivar");
+        JButton btnLimpiar = new JButton("Limpiar");
 
         btnGuardar.addActionListener(e -> {
+            try {
+                controller.guardar(
+                        txtCodigo.getText(),
+                        txtNombre.getText(),
+                        txtUbicacion.getText(),
+                        (int) spCapacidad.getValue());
 
-            LaboratorioController controller = new LaboratorioController();
+                cargarLaboratorios();
+                limpiar();
 
-            String mensaje = controller.validarLaboratorio(
-                    txtCodigo.getText(),
-                    txtNombre.getText(),
-                    txtUbicacion.getText(),
-                    (int) spCapacidad.getValue()
-            );
+                JOptionPane.showMessageDialog(this,
+                        "Laboratorio guardado correctamente.");
 
-            if (mensaje != null) {
-                JOptionPane.showMessageDialog(this, mensaje);
-                return;
+            } catch (SQLException | IllegalArgumentException ex) {
+                mostrarError(ex);
             }
-
-            JOptionPane.showMessageDialog(this,
-                    "Datos validados correctamente.");
         });
-
-
-
-
-        JButton btnEditar = new JButton("Editar");
 
         btnEditar.addActionListener(e -> {
+            int id = obtenerIdSeleccionado();
+            if (id == -1) return;
 
-            int fila = tablaLaboratorios.getSelectedRow();
+            try {
+                controller.editar(
+                        id,
+                        txtCodigo.getText(),
+                        txtNombre.getText(),
+                        txtUbicacion.getText(),
+                        (int) spCapacidad.getValue(),
+                        cbEstado.getSelectedItem().toString());
 
-            if (fila == -1) {
+                cargarLaboratorios();
+                limpiar();
+
                 JOptionPane.showMessageDialog(this,
-                        "Debe seleccionar un laboratorio de la tabla.");
-                return;
-            }
+                        "Laboratorio actualizado correctamente.");
 
-            JOptionPane.showMessageDialog(this,
-                    "Laboratorio seleccionado correctamente.\n"
-                            + "La edición estará disponible al conectar SQL Server.");
+            } catch (SQLException | IllegalArgumentException ex) {
+                mostrarError(ex);
+            }
         });
 
-
-
-
-        JButton btnDesactivar = new JButton("Desactivar");
         btnDesactivar.addActionListener(e -> {
-
-            int fila = tablaLaboratorios.getSelectedRow();
-
-            if (fila == -1) {
-                JOptionPane.showMessageDialog(this,
-                        "Debe seleccionar un laboratorio para desactivarlo.");
-                return;
-            }
+            int id = obtenerIdSeleccionado();
+            if (id == -1) return;
 
             int respuesta = JOptionPane.showConfirmDialog(
                     this,
-                    "¿Está seguro de que desea desactivar este laboratorio?",
-                    "Confirmar desactivación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
+                    "¿Desea desactivar este laboratorio?",
+                    "Confirmación",
+                    JOptionPane.YES_NO_OPTION);
 
-            if (respuesta == JOptionPane.YES_OPTION) {
+            if (respuesta != JOptionPane.YES_OPTION) return;
+
+            try {
+                controller.desactivar(id);
+                cargarLaboratorios();
+                limpiar();
+
                 JOptionPane.showMessageDialog(this,
-                        "Confirmación recibida.\n"
-                                + "La desactivación estará disponible al conectar SQL Server.");
+                        "Laboratorio desactivado correctamente.");
+
+            } catch (SQLException ex) {
+                mostrarError(ex);
             }
         });
 
+        btnLimpiar.addActionListener(e -> limpiar());
 
-
-
-        JButton btnLimpiar = new JButton("Limpiar");
-        btnLimpiar.addActionListener(e -> {
-            txtCodigo.setText("");
-            txtNombre.setText("");
-            txtUbicacion.setText("");
-            spCapacidad.setValue(1);
-            cbEstado.setSelectedIndex(0);
-            tablaLaboratorios.clearSelection();
-        });
-
+        JPanel botones = new JPanel(new FlowLayout());
         botones.add(btnGuardar);
         botones.add(btnEditar);
         botones.add(btnDesactivar);
@@ -196,15 +176,64 @@ public class LaboratorioView extends JFrame {
         superior.add(botones, BorderLayout.SOUTH);
 
         principal.add(superior, BorderLayout.NORTH);
-        principal.add(new JScrollPane(tablaLaboratorios), BorderLayout.CENTER);
+        principal.add(
+                new JScrollPane(tablaLaboratorios),
+                BorderLayout.CENTER);
 
         add(principal);
+
+        cargarLaboratorios();
+    }
+
+    private void cargarLaboratorios() {
+        try {
+            tablaLaboratorios.clearSelection();
+            modelo.setRowCount(0);
+
+            for (Object[] fila : controller.listar()) {
+                modelo.addRow(fila);
+            }
+
+        } catch (SQLException ex) {
+            mostrarError(ex);
+        }
+    }
+
+    private int obtenerIdSeleccionado() {
+        int fila = tablaLaboratorios.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Seleccione un laboratorio de la tabla.");
+            return -1;
+        }
+
+        int filaModelo =
+                tablaLaboratorios.convertRowIndexToModel(fila);
+
+        return ((Number) modelo.getValueAt(filaModelo, 0))
+                .intValue();
+    }
+
+    private void limpiar() {
+        tablaLaboratorios.clearSelection();
+        txtCodigo.setText("");
+        txtNombre.setText("");
+        txtUbicacion.setText("");
+        spCapacidad.setValue(1);
+        cbEstado.setSelectedItem("ACTIVO");
+    }
+
+    private void mostrarError(Exception ex) {
+        JOptionPane.showMessageDialog(
+                this,
+                ex.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            LaboratorioView ventana = new LaboratorioView();
-            ventana.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() ->
+                new LaboratorioView().setVisible(true));
     }
 }

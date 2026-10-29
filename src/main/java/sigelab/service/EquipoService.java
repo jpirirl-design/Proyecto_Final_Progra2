@@ -1,8 +1,17 @@
 
 package sigelab.service;
 
+import sigelab.repository.EquipoRepository;
+
+import java.sql.SQLException;
+import java.util.List;
+
 public class EquipoService {
 
+    private final EquipoRepository repository =
+            new EquipoRepository();
+
+    // VALIDACIONES
     public String validarEquipo(
             String codigo,
             String nombre,
@@ -10,8 +19,7 @@ public class EquipoService {
             String laboratorio,
             String marca,
             String modelo,
-            String serie
-    ) {
+            String serie) {
 
         if (codigo == null || codigo.trim().isEmpty()) {
             return "Debe ingresar el código de inventario.";
@@ -21,11 +29,15 @@ public class EquipoService {
             return "Debe ingresar el nombre del equipo.";
         }
 
-        if (tipo == null || tipo.equals("Seleccione tipo")) {
+        if (tipo == null || tipo.trim().isEmpty()
+                || tipo.equals("Seleccione tipo")
+                || tipo.equals("-1")) {
             return "Debe seleccionar un tipo de equipo.";
         }
 
-        if (laboratorio == null || laboratorio.equals("Seleccione laboratorio")) {
+        if (laboratorio == null || laboratorio.trim().isEmpty()
+                || laboratorio.equals("Seleccione laboratorio")
+                || laboratorio.equals("-1")) {
             return "Debe seleccionar un laboratorio.";
         }
 
@@ -42,5 +54,122 @@ public class EquipoService {
         }
 
         return null;
+    }
+
+    // CONSULTAR EQUIPOS
+    public List<Object[]> listar() throws SQLException {
+        return repository.listar();
+    }
+
+    // CARGAR TIPOS DE EQUIPO Y LABORATORIOS
+    public List<Object[]> listarOpciones(String tabla)
+            throws SQLException {
+        return repository.listarOpciones(tabla);
+    }
+
+    // GUARDAR EQUIPO
+    public void guardarEquipo(
+            String codigo,
+            String nombre,
+            int tipo,
+            int laboratorio,
+            String marca,
+            String modelo,
+            String serie,
+            String estado,
+            String observaciones) throws SQLException {
+
+        String error = validarEquipo(
+                codigo,
+                nombre,
+                String.valueOf(tipo),
+                String.valueOf(laboratorio),
+                marca,
+                modelo,
+                serie
+        );
+
+        if (error != null) {
+            throw new IllegalArgumentException(error);
+        }
+
+        validarEstado(estado);
+
+        repository.guardar(
+                codigo.trim(),
+                nombre.trim(),
+                tipo,
+                laboratorio,
+                marca.trim(),
+                modelo.trim(),
+                serie.trim(),
+                estado,
+                observaciones
+        );
+    }
+
+    // EDITAR EQUIPO
+    public void editarEquipo(
+            int id,
+            String codigo,
+            String nombre,
+            int tipo,
+            int laboratorio,
+            String marca,
+            String modelo,
+            String serie,
+            String estado,
+            String observaciones) throws SQLException {
+
+        String error = validarEquipo(
+                codigo,
+                nombre,
+                String.valueOf(tipo),
+                String.valueOf(laboratorio),
+                marca,
+                modelo,
+                serie
+        );
+
+        if (error != null) {
+            throw new IllegalArgumentException(error);
+        }
+
+        validarEstado(estado);
+
+        repository.editar(
+                id,
+                codigo.trim(),
+                nombre.trim(),
+                tipo,
+                laboratorio,
+                marca.trim(),
+                modelo.trim(),
+                serie.trim(),
+                estado,
+                observaciones
+        );
+    }
+
+    // DAR DE BAJA
+    public void darDeBaja(int id) throws SQLException {
+        repository.darDeBaja(id);
+    }
+
+    // VALIDAR ESTADO
+    private void validarEstado(String estado) {
+
+        if (!List.of(
+                "DISPONIBLE",
+                "PRESTADO",
+                "DAÑADO",
+                "MANTENIMIENTO",
+                "BAJA"
+        ).contains(estado)) {
+
+            throw new IllegalArgumentException(
+                    "El estado del equipo no es válido."
+            );
+        }
     }
 }
