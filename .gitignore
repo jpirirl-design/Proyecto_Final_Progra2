@@ -15,3 +15,6 @@ target/
 # Python
 .venv/
 __pycache__/
+
+# Imagenes QR generadas
+/qr-equipos/
