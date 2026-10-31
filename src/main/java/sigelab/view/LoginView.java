@@ -121,12 +121,22 @@ public class LoginView extends JFrame {
             JButton btnTipos = new JButton("Tipos de equipo");
             JButton btnEquipos = new JButton("Equipos");
             JButton btnPrestamos = new JButton("Préstamos");
-            btnPrestamos.addActionListener(e -> new PrestamoView().setVisible(true));
-            botones.add(btnPrestamos);
             JButton btnDevoluciones = new JButton("Devoluciones");
-            btnDevoluciones.addActionListener(e -> new DevolucionView().setVisible(true));
             JButton btnMantenimiento = new JButton("Mantenimiento");
-            btnMantenimiento.addActionListener(e -> new MantenimientoView().setVisible(true));
+
+            btnPrestamos.addActionListener(
+                    e -> new PrestamoView().setVisible(true)
+            );
+            btnDevoluciones.addActionListener(
+                    e -> new DevolucionView().setVisible(true)
+            );
+            btnMantenimiento.addActionListener(
+                    e -> new MantenimientoView().setVisible(true)
+            );
+
+            botones.add(btnPrestamos);
+            botones.add(btnDevoluciones);
+            botones.add(btnMantenimiento);
 
             btnLaboratorios.addActionListener(
                     e -> new LaboratorioView().setVisible(true)
