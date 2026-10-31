@@ -1,4 +1,3 @@
-
 package sigelab.view;
 
 import sigelab.controller.LoginController;
@@ -26,32 +25,59 @@ public class LoginView extends JFrame {
     public LoginView() {
         setTitle("SIGELAB - Inicio de sesión");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
 
-        JPanel campos = new JPanel(new GridLayout(2, 2, 10, 15));
-        campos.add(new JLabel("Usuario:"));
-        txtUsuario = new JTextField(18);
-        campos.add(txtUsuario);
-        campos.add(new JLabel("Contraseña:"));
-        txtPassword = new JPasswordField(18);
-        campos.add(txtPassword);
+        // ----- Panel izquierdo (marca) -----
+        Tema.PanelRedondeado marca = new Tema.PanelRedondeado(
+                new GridBagLayout(), Tema.SIDEBAR, null, 28);
+        marca.setPreferredSize(new Dimension(320, 0));
+        JPanel textosMarca = new JPanel();
+        textosMarca.setOpaque(false);
+        textosMarca.setLayout(new BoxLayout(textosMarca, BoxLayout.Y_AXIS));
+        JLabel logo = Tema.etiqueta("SIGELAB", Font.BOLD, 34, Color.WHITE);
+        JLabel subtitulo = Tema.etiqueta("<html><div style='text-align:center'>Sistema de Gestión y Control<br>"
+                + "de Laboratorios Universitarios</div></html>", Font.PLAIN, 14, new Color(0xDCE9F0));
+        JLabel umg = Tema.etiqueta("Universidad Mariano Gálvez", Font.PLAIN, 12, new Color(0xB9D2DE));
+        for (JLabel l : new JLabel[]{logo, subtitulo, umg}) {
+            l.setAlignmentX(Component.CENTER_ALIGNMENT);
+        }
+        textosMarca.add(logo);
+        textosMarca.add(Box.createVerticalStrut(10));
+        textosMarca.add(subtitulo);
+        textosMarca.add(Box.createVerticalStrut(28));
+        textosMarca.add(umg);
+        marca.add(textosMarca);
 
-        btnIngresar = new JButton("Ingresar con contraseña y rostro");
-        btnRegistrarRostro = new JButton("Registrar mi rostro por primera vez");
-        btnAdminInicial = new JButton("Crear administrador inicial");
+        // ----- Tarjeta del formulario -----
+        txtUsuario = new JTextField(20);
+        txtPassword = new JPasswordField(20);
+        btnIngresar = Tema.boton("Ingresar con contraseña y rostro", Tema.Estilo.PRIMARIO);
+        btnRegistrarRostro = Tema.boton("Registrar mi rostro por primera vez", Tema.Estilo.SECUNDARIO);
+        btnAdminInicial = Tema.boton("Crear administrador inicial", Tema.Estilo.SECUNDARIO);
+        lblEstado = Tema.etiqueta("El ingreso requiere un rostro previamente registrado.",
+                Font.PLAIN, 12, Tema.TEXTO_SUAVE);
 
-        JPanel botones = new JPanel(new GridLayout(0, 1, 8, 8));
-        botones.add(btnIngresar);
-        botones.add(btnRegistrarRostro);
-        botones.add(btnAdminInicial);
+        JPanel formulario = new JPanel(new GridLayout(0, 1, 0, 8));
+        formulario.setOpaque(false);
+        formulario.add(Tema.etiqueta("Bienvenido", Font.BOLD, 26, Tema.TEXTO));
+        formulario.add(Tema.etiqueta("Ingrese sus credenciales para continuar", Font.PLAIN, 13, Tema.TEXTO_SUAVE));
+        formulario.add(Tema.etiqueta("Usuario", Font.BOLD, 12, Tema.TEXTO));
+        formulario.add(txtUsuario);
+        formulario.add(Tema.etiqueta("Contraseña", Font.BOLD, 12, Tema.TEXTO));
+        formulario.add(txtPassword);
+        formulario.add(btnIngresar);
+        formulario.add(btnRegistrarRostro);
+        formulario.add(btnAdminInicial);
+        formulario.add(lblEstado);
 
-        lblEstado = new JLabel("El ingreso requiere un rostro previamente registrado.");
+        Tema.PanelRedondeado tarjeta = Tema.tarjeta(new BorderLayout());
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(28, 32, 24, 32));
+        tarjeta.add(formulario, BorderLayout.CENTER);
 
-        JPanel contenedor = new JPanel(new BorderLayout(10, 15));
-        contenedor.setBorder(BorderFactory.createEmptyBorder(25, 25, 20, 25));
-        contenedor.add(campos, BorderLayout.NORTH);
-        contenedor.add(botones, BorderLayout.CENTER);
-        contenedor.add(lblEstado, BorderLayout.SOUTH);
+        JPanel contenedor = new JPanel(new BorderLayout(18, 0));
+        contenedor.setBackground(Tema.FONDO);
+        contenedor.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        contenedor.add(marca, BorderLayout.WEST);
+        contenedor.add(tarjeta, BorderLayout.CENTER);
 
         btnIngresar.addActionListener(e -> iniciarSesion());
         txtPassword.addActionListener(e -> iniciarSesion());
@@ -60,6 +86,7 @@ public class LoginView extends JFrame {
 
         setContentPane(contenedor);
         pack();
+        setMinimumSize(getSize());
         setLocationRelativeTo(null);
     }
 
@@ -193,6 +220,7 @@ public class LoginView extends JFrame {
     }
 
     public static void main(String[] args) {
+        Tema.aplicar();   // paleta y componentes redondeados, antes de crear ventanas
         SwingUtilities.invokeLater(() -> {
             new LoginView().setVisible(true);
         });

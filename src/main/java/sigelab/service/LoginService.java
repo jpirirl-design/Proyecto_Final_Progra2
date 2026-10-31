@@ -1,6 +1,5 @@
 package sigelab.service;
 
-import sigelab.config.AppConfig;
 import sigelab.enums.AccionAuditoria;
 import sigelab.exception.BusinessException;
 import sigelab.exception.DataAccessException;
@@ -65,20 +64,6 @@ public class LoginService {
         Object[] datos = comprobarCredenciales(usuario, password);
         Integer idUsuario = ((Number) datos[0]).intValue();
 
-        // ---- MODO DESARROLLO: entrar sin reconocimiento facial ----
-        // Activar con facial.habilitado=false en config/application.properties.
-        // QUITARLO o ponerlo en true para la defensa (RN-02).
-        if ("false".equalsIgnoreCase(AppConfig.get("facial.habilitado", "true"))) {
-            auditar(idUsuario, AccionAuditoria.LOGIN_EXITOSO,
-                    "Login SIN validación facial (modo desarrollo).");
-            return new Object[]{
-                    datos[0], // ID
-                    datos[1], // Nombre
-                    datos[2], // Apellido
-                    datos[3], // Usuario
-                    datos[6]  // Rol
-            };
-        }
 
         // ---- Segundo factor: reconocimiento facial (RN-02) ----
         ResultadoFacial facial;

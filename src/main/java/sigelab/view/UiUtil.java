@@ -26,6 +26,7 @@ public final class UiUtil {
     /** Panel de botones que pasa a otra fila cuando no caben (en vez de ocultarlos). */
     public static JPanel panelBotones(JButton... botones) {
         JPanel panel = new JPanel(new WrapLayout(FlowLayout.CENTER, 10, 6));
+        panel.setOpaque(false);
         for (JButton b : botones) {
             panel.add(b);
         }
@@ -34,7 +35,7 @@ public final class UiUtil {
 
     /** Botón "Cerrar" que cierra solo esta ventana. */
     public static JButton botonCerrar(JFrame ventana) {
-        JButton cerrar = new JButton("Cerrar");
+        JButton cerrar = Tema.boton("Cerrar", Tema.Estilo.SECUNDARIO);
         cerrar.addActionListener(e -> ventana.dispose());
         return cerrar;
     }
