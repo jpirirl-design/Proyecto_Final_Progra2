@@ -1,5 +1,6 @@
 package sigelab.service;
 
+import sigelab.seguridad.Autorizacion;
 import sigelab.config.ConexionDB;
 import sigelab.enums.AccionAuditoria;
 import sigelab.enums.EstadoDetalle;
@@ -48,6 +49,7 @@ public class PrestamoService {
     public Prestamo confirmarPrestamo(String solicitante, Usuario usuarioRegistra, LocalDate fechaEsperada,
                                       List<Integer> idsEquipo, String observaciones) {
 
+        Autorizacion.exigirOperador(usuarioRegistra);
         validarDatosBasicos(solicitante, usuarioRegistra, fechaEsperada, idsEquipo);
 
         try (Connection con = ConexionDB.conectar()) {

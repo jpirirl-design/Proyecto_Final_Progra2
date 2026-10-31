@@ -2,7 +2,7 @@
 package sigelab.view;
 
 import sigelab.controller.LoginController;
-
+import sigelab.seguridad.SesionActual;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
@@ -57,6 +57,7 @@ public class LoginView extends JFrame {
             Object[] usuario = controller.iniciarSesion(
                     txtUsuario.getText(), password
             );
+            SesionActual.iniciarDesdeLogin(usuario);
 
             String nombre = String.valueOf(usuario[1]);
             String apellido = String.valueOf(usuario[2]);
@@ -119,6 +120,13 @@ public class LoginView extends JFrame {
             JButton btnLaboratorios = new JButton("Laboratorios");
             JButton btnTipos = new JButton("Tipos de equipo");
             JButton btnEquipos = new JButton("Equipos");
+            JButton btnPrestamos = new JButton("Préstamos");
+            btnPrestamos.addActionListener(e -> new PrestamoView().setVisible(true));
+            botones.add(btnPrestamos);
+            JButton btnDevoluciones = new JButton("Devoluciones");
+            btnDevoluciones.addActionListener(e -> new DevolucionView().setVisible(true));
+            JButton btnMantenimiento = new JButton("Mantenimiento");
+            btnMantenimiento.addActionListener(e -> new MantenimientoView().setVisible(true));
 
             btnLaboratorios.addActionListener(
                     e -> new LaboratorioView().setVisible(true)
@@ -158,6 +166,7 @@ public class LoginView extends JFrame {
         JButton btnSalir = new JButton("Cerrar sesión");
 
         btnSalir.addActionListener(e -> {
+            SesionActual.cerrar();
             menu.dispose();
             txtUsuario.setText("");
             txtPassword.setText("");

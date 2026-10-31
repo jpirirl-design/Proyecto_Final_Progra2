@@ -1,5 +1,6 @@
 package sigelab.service;
 
+import sigelab.seguridad.Autorizacion;
 import sigelab.config.ConexionDB;
 import sigelab.enums.AccionAuditoria;
 import sigelab.enums.CondicionDevolucion;
@@ -61,6 +62,7 @@ public class DevolucionService {
      */
     public EstadoPrestamo devolver(int idPrestamo, Usuario usuario, List<ItemDevolucion> items) {
 
+        Autorizacion.exigirOperador(usuario);
         validarDatos(idPrestamo, usuario, items);
 
         try (Connection con = ConexionDB.conectar()) {
