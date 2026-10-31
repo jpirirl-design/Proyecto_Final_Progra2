@@ -1,5 +1,6 @@
 package sigelab.service;
 
+import sigelab.seguridad.Autorizacion;
 import sigelab.config.ConexionDB;
 import sigelab.enums.AccionAuditoria;
 import sigelab.enums.EstadoEquipo;
@@ -56,6 +57,7 @@ public class MantenimientoService {
     public int enviarAMantenimiento(int idEquipo, TipoMantenimiento tipo, String descripcion,
                                     String responsable, String observaciones, Usuario usuario) {
 
+        Autorizacion.exigirOperador(usuario);
         validarEnvio(idEquipo, tipo, descripcion, responsable, observaciones, usuario);
 
         try (Connection con = ConexionDB.conectar()) {
@@ -109,6 +111,7 @@ public class MantenimientoService {
     public EstadoEquipo finalizarMantenimiento(int idMantenimiento, ResultadoMantenimiento resultado,
                                                String observaciones, Usuario usuario) {
 
+        Autorizacion.exigirOperador(usuario);
         validarCierre(idMantenimiento, resultado, observaciones, usuario);
 
         try (Connection con = ConexionDB.conectar()) {

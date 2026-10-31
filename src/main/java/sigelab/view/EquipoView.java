@@ -59,7 +59,7 @@ public class EquipoView extends JFrame {
         cbEstado = new JComboBox<>(new String[]{
                 "DISPONIBLE",
                 "PRESTADO",
-                "DAÑADO",
+                "DANADO",
                 "MANTENIMIENTO",
                 "BAJA"
         });
