@@ -34,8 +34,8 @@ public class MantenimientoView extends JFrame {
 
     public MantenimientoView() {
         setTitle("SIGELAB - Mantenimiento");
-        setSize(1000, 650);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        UiUtil.ajustarAPantalla(this, 1000, 650);
         setLocationRelativeTo(null);
 
         construirInterfaz();
@@ -94,7 +94,7 @@ public class MantenimientoView extends JFrame {
         JButton btnActualizar = new JButton("Actualizar");
         JButton btnCerrar = new JButton("Cerrar");
 
-        JPanel cierre = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        JPanel cierre = new JPanel(new WrapLayout(FlowLayout.LEFT, 10, 6));
         cierre.add(new JLabel("Resultado:"));
         cierre.add(cbResultado);
         cierre.add(new JLabel("Observaciones del cierre:"));

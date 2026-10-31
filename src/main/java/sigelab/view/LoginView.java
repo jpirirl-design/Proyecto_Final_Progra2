@@ -3,10 +3,14 @@ package sigelab.view;
 
 import sigelab.controller.LoginController;
 import sigelab.seguridad.SesionActual;
+
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public class LoginView extends JFrame {
 
@@ -15,181 +19,177 @@ public class LoginView extends JFrame {
     private final JTextField txtUsuario;
     private final JPasswordField txtPassword;
     private final JButton btnIngresar;
+    private final JButton btnRegistrarRostro;
+    private final JButton btnAdminInicial;
+    private final JLabel lblEstado;
 
     public LoginView() {
         setTitle("SIGELAB - Inicio de sesión");
-        setSize(420, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setResizable(false);
 
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 15));
-        panel.setBorder(
-                BorderFactory.createEmptyBorder(25, 25, 25, 25)
-        );
+        JPanel campos = new JPanel(new GridLayout(2, 2, 10, 15));
+        campos.add(new JLabel("Usuario:"));
+        txtUsuario = new JTextField(18);
+        campos.add(txtUsuario);
+        campos.add(new JLabel("Contraseña:"));
+        txtPassword = new JPasswordField(18);
+        campos.add(txtPassword);
 
-        panel.add(new JLabel("Usuario:"));
-        txtUsuario = new JTextField();
-        panel.add(txtUsuario);
+        btnIngresar = new JButton("Ingresar con contraseña y rostro");
+        btnRegistrarRostro = new JButton("Registrar mi rostro por primera vez");
+        btnAdminInicial = new JButton("Crear administrador inicial");
 
-        panel.add(new JLabel("Contraseña:"));
-        txtPassword = new JPasswordField();
-        panel.add(txtPassword);
+        JPanel botones = new JPanel(new GridLayout(0, 1, 8, 8));
+        botones.add(btnIngresar);
+        botones.add(btnRegistrarRostro);
+        botones.add(btnAdminInicial);
 
-        panel.add(new JLabel(""));
-        btnIngresar = new JButton("Ingresar");
-        panel.add(btnIngresar);
+        lblEstado = new JLabel("El ingreso requiere un rostro previamente registrado.");
 
-        panel.add(new JLabel(""));
-        panel.add(new JLabel(""));
+        JPanel contenedor = new JPanel(new BorderLayout(10, 15));
+        contenedor.setBorder(BorderFactory.createEmptyBorder(25, 25, 20, 25));
+        contenedor.add(campos, BorderLayout.NORTH);
+        contenedor.add(botones, BorderLayout.CENTER);
+        contenedor.add(lblEstado, BorderLayout.SOUTH);
 
         btnIngresar.addActionListener(e -> iniciarSesion());
         txtPassword.addActionListener(e -> iniciarSesion());
+        btnRegistrarRostro.addActionListener(e -> registrarRostroInicial());
+        btnAdminInicial.addActionListener(e -> crearAdministradorInicial());
 
-        setContentPane(panel);
+        setContentPane(contenedor);
+        pack();
+        setLocationRelativeTo(null);
     }
 
+    // ----- Ingresar: contraseña + rostro -----
     private void iniciarSesion() {
+        String usuario = txtUsuario.getText();
         char[] password = txtPassword.getPassword();
-        btnIngresar.setEnabled(false);
 
-        try {
-            Object[] usuario = controller.iniciarSesion(
-                    txtUsuario.getText(), password
-            );
-            SesionActual.iniciarDesdeLogin(usuario);
-
-            String nombre = String.valueOf(usuario[1]);
-            String apellido = String.valueOf(usuario[2]);
-            String rol = String.valueOf(usuario[4]);
-
-            abrirMenuPrincipal(nombre, apellido, rol);
-
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    ex.getMessage(),
-                    "Acceso denegado",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Error de conexión:\n" + ex.getMessage(),
-                    "SIGELAB",
-                    JOptionPane.ERROR_MESSAGE
-            );
-
-        } finally {
-            Arrays.fill(password, '\0');
-            txtPassword.setText("");
-            btnIngresar.setEnabled(true);
-        }
+        ejecutar("Verificando credenciales y rostro... siga las indicaciones de la cámara.",
+                () -> controller.iniciarSesion(usuario, password),
+                password,
+                datos -> {
+                    SesionActual.iniciarDesdeLogin(datos);
+                    dispose();
+                    new MainView().setVisible(true);
+                });
     }
 
-    private void abrirMenuPrincipal(
-            String nombre,
-            String apellido,
-            String rol
-    ) {
-        JFrame menu = new JFrame("SIGELAB - Menú principal");
-        menu.setSize(600, 450);
-        menu.setLocationRelativeTo(null);
-        menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    // ----- Primer registro de rostro (con usuario y contraseña) -----
+    private void registrarRostroInicial() {
+        String usuario = txtUsuario.getText();
+        char[] password = txtPassword.getPassword();
 
-        JPanel principal = new JPanel(new BorderLayout(10, 10));
-        principal.setBorder(
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        );
+        ejecutar("Registrando rostro... siga las indicaciones de la cámara.",
+                () -> controller.registrarRostroInicial(usuario, password),
+                password,
+                mensaje -> JOptionPane.showMessageDialog(this,
+                        mensaje + "\nAhora pulse \"Ingresar con contraseña y rostro\".",
+                        "SIGELAB", JOptionPane.INFORMATION_MESSAGE));
+    }
 
-        JLabel bienvenida = new JLabel(
-                "Bienvenido, " + nombre + " " + apellido
-                        + " | Rol: " + rol,
-                SwingConstants.CENTER
-        );
-        principal.add(bienvenida, BorderLayout.NORTH);
+    // ----- Administrador inicial (solo si no hay usuarios) -----
+    private void crearAdministradorInicial() {
+        JTextField nombre = new JTextField();
+        JTextField apellido = new JTextField();
+        JTextField usuario = new JTextField();
+        JTextField correo = new JTextField();
+        JPasswordField password = new JPasswordField();
 
-        JPanel botones = new JPanel(new GridLayout(0, 2, 12, 12));
+        JPanel formulario = new JPanel(new GridLayout(0, 2, 8, 8));
+        formulario.add(new JLabel("Nombre:"));
+        formulario.add(nombre);
+        formulario.add(new JLabel("Apellido:"));
+        formulario.add(apellido);
+        formulario.add(new JLabel("Usuario:"));
+        formulario.add(usuario);
+        formulario.add(new JLabel("Correo:"));
+        formulario.add(correo);
+        formulario.add(new JLabel("Contraseña:"));
+        formulario.add(password);
 
-        boolean esAdmin = "ADMIN".equalsIgnoreCase(rol);
-        boolean esEncargado = "ENCARGADO".equalsIgnoreCase(rol);
-        boolean esDocente = "DOCENTE".equalsIgnoreCase(rol);
+        int opcion = JOptionPane.showConfirmDialog(this, formulario,
+                "Administrador inicial (solo si no existen usuarios)",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (esAdmin || esEncargado) {
-            JButton btnLaboratorios = new JButton("Laboratorios");
-            JButton btnTipos = new JButton("Tipos de equipo");
-            JButton btnEquipos = new JButton("Equipos");
-            JButton btnPrestamos = new JButton("Préstamos");
-            JButton btnDevoluciones = new JButton("Devoluciones");
-            JButton btnMantenimiento = new JButton("Mantenimiento");
-
-            btnPrestamos.addActionListener(
-                    e -> new PrestamoView().setVisible(true)
-            );
-            btnDevoluciones.addActionListener(
-                    e -> new DevolucionView().setVisible(true)
-            );
-            btnMantenimiento.addActionListener(
-                    e -> new MantenimientoView().setVisible(true)
-            );
-
-            botones.add(btnPrestamos);
-            botones.add(btnDevoluciones);
-            botones.add(btnMantenimiento);
-
-            btnLaboratorios.addActionListener(
-                    e -> new LaboratorioView().setVisible(true)
-            );
-            btnTipos.addActionListener(
-                    e -> new TipoEquipoView().setVisible(true)
-            );
-            btnEquipos.addActionListener(
-                    e -> new EquipoView().setVisible(true)
-            );
-
-            botones.add(btnLaboratorios);
-            botones.add(btnTipos);
-            botones.add(btnEquipos);
+        if (opcion != JOptionPane.OK_OPTION) {
+            return;
         }
 
-        if (esAdmin) {
-            JButton btnUsuarios = new JButton("Usuarios");
-            btnUsuarios.addActionListener(
-                    e -> new UsuarioView().setVisible(true)
-            );
-            botones.add(btnUsuarios);
-        }
+        char[] clave = password.getPassword();
+        ejecutar("Creando administrador...",
+                () -> {
+                    controller.crearAdministradorInicial(nombre.getText(), apellido.getText(),
+                            usuario.getText(), correo.getText(), clave);
+                    return usuario.getText().trim();
+                },
+                clave,
+                creado -> {
+                    txtUsuario.setText(creado);
+                    JOptionPane.showMessageDialog(this,
+                            "Administrador creado.\nEscriba su contraseña y pulse "
+                                    + "\"Registrar mi rostro por primera vez\" antes de ingresar.",
+                            "SIGELAB", JOptionPane.INFORMATION_MESSAGE);
+                });
+    }
 
-        if (esDocente) {
-            principal.add(
-                    new JLabel(
-                            "Acceso docente habilitado.",
-                            SwingConstants.CENTER
-                    ),
-                    BorderLayout.CENTER
-            );
-        } else {
-            principal.add(botones, BorderLayout.CENTER);
-        }
+    /**
+     * La cámara tarda varios segundos, por eso cada acción se ejecuta en segundo plano
+     * (SwingWorker) para no congelar la ventana.
+     */
+    private <T> void ejecutar(String aviso, Callable<T> tarea, char[] password, Consumer<T> alTerminar) {
+        habilitar(false);
+        lblEstado.setText(aviso);
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        JButton btnSalir = new JButton("Cerrar sesión");
+        new SwingWorker<T, Void>() {
+            @Override
+            protected T doInBackground() throws Exception {
+                try {
+                    return tarea.call();
+                } finally {
+                    Arrays.fill(password, '\0');
+                }
+            }
 
-        btnSalir.addActionListener(e -> {
-            SesionActual.cerrar();
-            menu.dispose();
-            txtUsuario.setText("");
-            txtPassword.setText("");
-            setLocationRelativeTo(null);
-            setVisible(true);
-        });
+            @Override
+            protected void done() {
+                setCursor(Cursor.getDefaultCursor());
+                habilitar(true);
+                lblEstado.setText("El ingreso requiere un rostro previamente registrado.");
+                txtPassword.setText("");
 
-        principal.add(btnSalir, BorderLayout.SOUTH);
-        menu.setContentPane(principal);
+                try {
+                    alTerminar.accept(get());
 
-        // Ocultar el Login sin destruirlo.
-        setVisible(false);
-        menu.setVisible(true);
+                } catch (ExecutionException ex) {
+                    Throwable causa = ex.getCause();
+                    if (causa instanceof SQLException) {
+                        mostrar("No se pudo conectar con la base de datos.\n" + causa.getMessage(),
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        mostrar(causa.getMessage(), JOptionPane.WARNING_MESSAGE);
+                    }
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (RuntimeException ex) {
+                    mostrar(ex.getMessage(), JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }.execute();
+    }
+
+    private void habilitar(boolean activo) {
+        btnIngresar.setEnabled(activo);
+        btnRegistrarRostro.setEnabled(activo);
+        btnAdminInicial.setEnabled(activo);
+    }
+
+    private void mostrar(String mensaje, int tipo) {
+        JOptionPane.showMessageDialog(this, mensaje, "SIGELAB", tipo);
     }
 
     public static void main(String[] args) {

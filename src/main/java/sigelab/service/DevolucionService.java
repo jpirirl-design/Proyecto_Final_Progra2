@@ -1,12 +1,7 @@
 package sigelab.service;
 
-import sigelab.seguridad.Autorizacion;
 import sigelab.config.ConexionDB;
-import sigelab.enums.AccionAuditoria;
-import sigelab.enums.CondicionDevolucion;
-import sigelab.enums.EstadoDetalle;
-import sigelab.enums.EstadoEquipo;
-import sigelab.enums.EstadoPrestamo;
+import sigelab.enums.*;
 import sigelab.exception.BusinessException;
 import sigelab.exception.DataAccessException;
 import sigelab.model.DetallePrestamo;
@@ -16,6 +11,7 @@ import sigelab.repository.AuditoriaRepository;
 import sigelab.repository.DevolucionRepository;
 import sigelab.repository.DevolucionRepository.DetalleDevolucion;
 import sigelab.repository.EquipoEstadoRepository;
+import sigelab.seguridad.Autorizacion;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -2,8 +2,13 @@
 package sigelab.repository;
 
 import sigelab.config.ConexionDB;
-import java.sql.*;
-import java.util.*;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EquipoRepository {
 
@@ -93,10 +98,11 @@ public class EquipoRepository {
         }
     }
 
+    /** Actualiza los datos descriptivos; el estado lo cambian solo los procesos del Service. */
     public void editar(int id, String codigo, String nombre,
                        int tipo, int laboratorio, String marca,
                        String modelo, String serie,
-                       String estado, String observaciones)
+                       String observaciones)
             throws SQLException {
 
         String sql = """
@@ -104,17 +110,22 @@ public class EquipoRepository {
                 SET codigo_inventario = ?, nombre = ?,
                     id_tipo_equipo = ?, id_laboratorio = ?,
                     marca = ?, modelo = ?, numero_serie = ?,
-                    estado = ?, observaciones = ?
+                    observaciones = ?
                 WHERE id_equipo = ?
                 """;
 
         try (Connection con = ConexionDB.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            completarParametros(ps, codigo, nombre, tipo,
-                    laboratorio, marca, modelo, serie,
-                    estado, observaciones);
-            ps.setInt(10, id);
+            ps.setString(1, codigo);
+            ps.setString(2, nombre);
+            ps.setInt(3, tipo);
+            ps.setInt(4, laboratorio);
+            ps.setString(5, marca);
+            ps.setString(6, modelo);
+            ps.setString(7, serie);
+            ps.setString(8, observaciones);
+            ps.setInt(9, id);
 
             if (ps.executeUpdate() == 0) {
                 throw new SQLException("El equipo no existe.");

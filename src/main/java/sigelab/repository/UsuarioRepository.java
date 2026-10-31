@@ -3,7 +3,10 @@ package sigelab.repository;
 
 import sigelab.config.ConexionDB;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,6 +183,53 @@ public class UsuarioRepository {
 
             ps.setInt(1, id);
             ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Inserta el primer ADMIN solo si no existe ningún usuario.
+     * El bloqueo (UPDLOCK, HOLDLOCK) evita que dos personas lo creen al mismo tiempo.
+     */
+    public void guardarAdministradorInicial(
+            String nombre,
+            String apellido,
+            String usuario,
+            String correo,
+            String passwordHash
+    ) throws SQLException {
+
+        String sql = """
+                IF EXISTS (SELECT 1 FROM Usuario WITH (UPDLOCK, HOLDLOCK))
+                    THROW 50001, 'Ya existen usuarios.', 1;
+
+                INSERT INTO Usuario
+                (nombre, apellido, nombre_usuario,
+                 correo, contrasena_hash, id_rol, estado)
+                SELECT ?, ?, ?, ?, ?, id_rol, 'ACTIVO'
+                FROM Rol WHERE nombre = 'ADMIN';
+                """;
+
+        try (Connection conexion = ConexionDB.conectar()) {
+            conexion.setAutoCommit(false);
+
+            try (PreparedStatement ps = conexion.prepareStatement(sql)) {
+                ps.setString(1, nombre);
+                ps.setString(2, apellido);
+                ps.setString(3, usuario);
+                ps.setString(4, correo);
+                ps.setString(5, passwordHash);
+                ps.executeUpdate();
+                conexion.commit();
+
+            } catch (SQLException e) {
+                conexion.rollback();
+                if (e.getErrorCode() == 50001) {
+                    throw new IllegalArgumentException(
+                            "El administrador inicial ya existe. Inicie sesión."
+                    );
+                }
+                throw e;
+            }
         }
     }
 }

@@ -41,8 +41,8 @@ public class DevolucionView extends JFrame {
 
     public DevolucionView() {
         setTitle("SIGELAB - Devoluciones");
-        setSize(950, 650);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        UiUtil.ajustarAPantalla(this, 950, 650);
         setLocationRelativeTo(null);
 
         construirInterfaz();
@@ -109,7 +109,7 @@ public class DevolucionView extends JFrame {
         JButton btnActualizar = new JButton("Actualizar");
         JButton btnCerrar = new JButton("Cerrar");
 
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
+        JPanel botones = new JPanel(new WrapLayout(FlowLayout.CENTER, 10, 6));
         botones.add(btnTodos);
         botones.add(btnRegistrar);
         botones.add(btnActualizar);

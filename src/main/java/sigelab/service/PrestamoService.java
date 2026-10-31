@@ -1,6 +1,5 @@
 package sigelab.service;
 
-import sigelab.seguridad.Autorizacion;
 import sigelab.config.ConexionDB;
 import sigelab.enums.AccionAuditoria;
 import sigelab.enums.EstadoDetalle;
@@ -15,6 +14,7 @@ import sigelab.model.Usuario;
 import sigelab.repository.AuditoriaRepository;
 import sigelab.repository.EquipoEstadoRepository;
 import sigelab.repository.PrestamoRepository;
+import sigelab.seguridad.Autorizacion;
 
 import java.sql.Connection;
 import java.sql.SQLException;

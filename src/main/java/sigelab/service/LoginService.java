@@ -1,6 +1,12 @@
-
 package sigelab.service;
 
+import sigelab.config.AppConfig;
+import sigelab.enums.AccionAuditoria;
+import sigelab.exception.BusinessException;
+import sigelab.exception.DataAccessException;
+import sigelab.facial.ClienteFacial;
+import sigelab.facial.ResultadoFacial;
+import sigelab.repository.AuditoriaRepository;
 import sigelab.repository.LoginRepository;
 
 import javax.crypto.SecretKeyFactory;
@@ -12,8 +18,21 @@ import java.util.Base64;
 
 public class LoginService {
 
-    private final LoginRepository repository =
-            new LoginRepository();
+    private final LoginRepository repository;
+    private final ClienteFacial clienteFacial;
+    private final AuditoriaRepository auditoriaRepository;
+
+    public LoginService() {
+        this(new LoginRepository(), new ClienteFacial(), new AuditoriaRepository());
+    }
+
+    public LoginService(LoginRepository repository,
+                        ClienteFacial clienteFacial,
+                        AuditoriaRepository auditoriaRepository) {
+        this.repository = repository;
+        this.clienteFacial = clienteFacial;
+        this.auditoriaRepository = auditoriaRepository;
+    }
 
     // VALIDACIONES ORIGINALES
     public String validarCredenciales(
@@ -32,8 +51,90 @@ public class LoginService {
         return null;
     }
 
-    // AUTENTICAR USUARIO CONTRA SQL SERVER
+    /**
+     * Login en dos factores:
+     * 1) usuario + contraseña + estado ACTIVO (RN-01)
+     * 2) validación facial obligatoria con prueba de vida (RN-02)
+     * Cada intento queda en Auditoría (RN-18).
+     */
     public Object[] iniciarSesion(
+            String usuario,
+            char[] password
+    ) throws SQLException {
+
+        Object[] datos = comprobarCredenciales(usuario, password);
+        Integer idUsuario = ((Number) datos[0]).intValue();
+
+        // ---- MODO DESARROLLO: entrar sin reconocimiento facial ----
+        // Activar con facial.habilitado=false en config/application.properties.
+        // QUITARLO o ponerlo en true para la defensa (RN-02).
+        if ("false".equalsIgnoreCase(AppConfig.get("facial.habilitado", "true"))) {
+            auditar(idUsuario, AccionAuditoria.LOGIN_EXITOSO,
+                    "Login SIN validación facial (modo desarrollo).");
+            return new Object[]{
+                    datos[0], // ID
+                    datos[1], // Nombre
+                    datos[2], // Apellido
+                    datos[3], // Usuario
+                    datos[6]  // Rol
+            };
+        }
+
+        // ---- Segundo factor: reconocimiento facial (RN-02) ----
+        ResultadoFacial facial;
+        try {
+            facial = clienteFacial.verificar(idUsuario);
+        } catch (BusinessException ex) {
+            auditar(idUsuario, AccionAuditoria.LOGIN_FALLIDO,
+                    "Validación facial no completada: " + ex.getMessage());
+            throw new IllegalArgumentException(ex.getMessage());
+        }
+
+        if (!facial.coincide() || !facial.livenessAprobado()) {
+            auditar(idUsuario, AccionAuditoria.LOGIN_FALLIDO,
+                    "Validación facial rechazada.");
+            throw new IllegalArgumentException(
+                    "Rostro no reconocido. Acceso denegado."
+            );
+        }
+
+        auditar(idUsuario, AccionAuditoria.LOGIN_EXITOSO,
+                "Contraseña y rostro verificados.");
+
+        // No devolver el hash de contraseña.
+        return new Object[]{
+                datos[0], // ID
+                datos[1], // Nombre
+                datos[2], // Apellido
+                datos[3], // Usuario
+                datos[6]  // Rol
+        };
+    }
+
+    /**
+     * Primer registro de rostro desde el Login: exige usuario y contraseña correctos
+     * y solo funciona si la persona todavía no tiene perfil facial.
+     * Para reemplazar un rostro ya registrado se necesita un ADMIN (pantalla Usuarios).
+     */
+    public String registrarRostroInicial(
+            String usuario,
+            char[] password
+    ) throws SQLException {
+
+        Object[] datos = comprobarCredenciales(usuario, password);
+        int idUsuario = ((Number) datos[0]).intValue();
+
+        if (clienteFacial.estaRegistrado(idUsuario)) {
+            throw new IllegalArgumentException(
+                    "El rostro ya está registrado. Solicite a un ADMIN su actualización."
+            );
+        }
+
+        return clienteFacial.registrar(idUsuario, false);
+    }
+
+    /** Primer factor: existe, está ACTIVO y la contraseña coincide. Devuelve la fila del usuario. */
+    private Object[] comprobarCredenciales(
             String usuario,
             char[] password
     ) throws SQLException {
@@ -44,19 +145,22 @@ public class LoginService {
             throw new IllegalArgumentException(error);
         }
 
-        Object[] datos = repository.buscarPorUsuario(
-                usuario.trim()
-        );
+        String nombreUsuario = usuario.trim();
+        Object[] datos = repository.buscarPorUsuario(nombreUsuario);
 
         if (datos == null) {
+            auditar(null, AccionAuditoria.LOGIN_FALLIDO,
+                    "Usuario inexistente: " + nombreUsuario);
             throw new IllegalArgumentException(
                     "Usuario o contraseña incorrectos."
             );
         }
 
+        Integer idUsuario = ((Number) datos[0]).intValue();
         String estado = String.valueOf(datos[5]);
 
-        if (!"ACTIVO".equalsIgnoreCase(estado)) {
+        if (!"ACTIVO".equalsIgnoreCase(estado)) {                       // RN-01
+            auditar(idUsuario, AccionAuditoria.LOGIN_FALLIDO, "Usuario INACTIVO.");
             throw new IllegalArgumentException(
                     "Este usuario está inactivo."
             );
@@ -65,19 +169,23 @@ public class LoginService {
         String hashGuardado = String.valueOf(datos[4]);
 
         if (!verificarPassword(password, hashGuardado)) {
+            auditar(idUsuario, AccionAuditoria.LOGIN_FALLIDO, "Contraseña incorrecta.");
             throw new IllegalArgumentException(
                     "Usuario o contraseña incorrectos."
             );
         }
 
-        // No devolver el hash de contraseña.
-        return new Object[]{
-                datos[0], // ID
-                datos[1], // Nombre
-                datos[2], // Apellido
-                datos[3], // Usuario
-                datos[6]  // Rol
-        };
+        return datos;
+    }
+
+    /** Un fallo al auditar no debe ocultar el motivo real del rechazo. */
+    private void auditar(Integer idUsuario, AccionAuditoria accion, String descripcion) {
+        try {
+            auditoriaRepository.registrar(idUsuario, accion.name(), "Usuario",
+                    idUsuario, descripcion);
+        } catch (DataAccessException ex) {
+            System.err.println("No se pudo auditar " + accion + ": " + ex.getMessage());
+        }
     }
 
     // VERIFICAR CONTRASEÑA PBKDF2

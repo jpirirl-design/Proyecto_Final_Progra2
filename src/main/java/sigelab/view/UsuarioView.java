@@ -1,4 +1,3 @@
-
 package sigelab.view;
 
 import sigelab.controller.UsuarioController;
@@ -31,9 +30,8 @@ public class UsuarioView extends JFrame {
 
     public UsuarioView() {
         setTitle("SIGELAB - Gestión de Usuarios");
-        setSize(1000, 650);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        UiUtil.ajustarAPantalla(this, 1000, 650);
 
         construirInterfaz();
         cargarRoles();
@@ -91,18 +89,23 @@ public class UsuarioView extends JFrame {
         formulario.add(new JLabel(""));
 
         JPanel botones = new JPanel(
-                new FlowLayout(FlowLayout.CENTER, 12, 10)
+                new WrapLayout(FlowLayout.CENTER, 10, 6)
         );
 
         JButton btnGuardar = new JButton("Guardar");
         JButton btnEditar = new JButton("Editar");
         JButton btnDesactivar = new JButton("Desactivar");
         JButton btnLimpiar = new JButton("Limpiar");
+        JButton btnRostro = new JButton("Registrar rostro");
 
         botones.add(btnGuardar);
         botones.add(btnEditar);
         botones.add(btnDesactivar);
         botones.add(btnLimpiar);
+        botones.add(btnRostro);
+        botones.add(UiUtil.botonCerrar(this));
+
+        btnRostro.addActionListener(e -> registrarRostro());
 
         modeloTabla = new DefaultTableModel(
                 new String[]{
@@ -368,7 +371,55 @@ public class UsuarioView extends JFrame {
                     "No se pudo desactivar el usuario: "
                             + ex.getMessage()
             );
+
+        } catch (RuntimeException ex) {
+            mostrarError(ex.getMessage());
         }
+    }
+
+    // REGISTRAR O REEMPLAZAR EL ROSTRO DEL USUARIO SELECCIONADO
+    private void registrarRostro() {
+
+        String nombreUsuario = txtUsuario.getText().trim();
+        int idUsuario = idSeleccionado;
+
+        if (idUsuario <= 0 || nombreUsuario.isEmpty()) {
+            mostrarError("Seleccione un usuario de la tabla.");
+            return;
+        }
+
+        int confirmacion = JOptionPane.showConfirmDialog(
+                this,
+                "Se abrirá la cámara para registrar el rostro de " + nombreUsuario
+                        + ".\nSi ya tenía un rostro registrado, será reemplazado. ¿Continuar?",
+                "Registrar rostro",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirmacion != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                return controller.registrarRostro(idUsuario);
+            }
+
+            @Override
+            protected void done() {
+                setCursor(Cursor.getDefaultCursor());
+                try {
+                    JOptionPane.showMessageDialog(UsuarioView.this, get());
+                } catch (java.util.concurrent.ExecutionException ex) {
+                    mostrarError(ex.getCause().getMessage());
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }.execute();
     }
 
     // SELECCIONAR USUARIO DE LA TABLA

@@ -1,4 +1,3 @@
-
 package sigelab.view;
 
 import sigelab.controller.TipoEquipoController;
@@ -21,10 +20,8 @@ public class TipoEquipoView extends JFrame {
     public TipoEquipoView() {
 
         setTitle("SIGELAB - Gestión de Tipos de Equipo");
-        setSize(800, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setResizable(false);
+        UiUtil.ajustarAPantalla(this, 800, 520);
 
         JPanel principal = new JPanel(new BorderLayout(10, 10));
         principal.setBorder(
@@ -149,11 +146,9 @@ public class TipoEquipoView extends JFrame {
 
         btnLimpiar.addActionListener(e -> limpiar());
 
-        JPanel botones = new JPanel(new FlowLayout());
-        botones.add(btnGuardar);
-        botones.add(btnEditar);
-        botones.add(btnEliminar);
-        botones.add(btnLimpiar);
+        JPanel botones = UiUtil.panelBotones(
+                btnGuardar, btnEditar, btnEliminar, btnLimpiar,
+                UiUtil.botonCerrar(this));
 
         JPanel superior = new JPanel(new BorderLayout(10, 10));
         superior.add(formulario, BorderLayout.CENTER);

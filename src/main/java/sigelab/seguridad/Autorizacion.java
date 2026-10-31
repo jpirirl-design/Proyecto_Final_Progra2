@@ -23,4 +23,12 @@ public final class Autorizacion {
             throw new BusinessException("Su rol no tiene permiso para realizar esta operación.");
         }
     }
+
+    /** Administración de usuarios y auditoría: solo ADMIN. */
+    public static void exigirAdmin(Usuario usuario) {
+        if (usuario == null || usuario.getRol() == null
+                || usuario.getRol().getNombre() != NombreRol.ADMIN) {
+            throw new BusinessException("Solo un ADMIN puede realizar esta operación.");
+        }
+    }
 }

@@ -1,7 +1,12 @@
 
 package sigelab.service;
 
+import sigelab.enums.AccionAuditoria;
+import sigelab.facial.ClienteFacial;
+import sigelab.repository.AuditoriaRepository;
 import sigelab.repository.UsuarioRepository;
+import sigelab.seguridad.Autorizacion;
+import sigelab.seguridad.SesionActual;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -15,6 +20,9 @@ public class UsuarioService {
 
     private final UsuarioRepository repository =
             new UsuarioRepository();
+
+    private final AuditoriaRepository auditoriaRepository =
+            new AuditoriaRepository();
 
     private static final int ITERACIONES = 600000;
     private static final int LONGITUD_SAL = 16;
@@ -179,7 +187,65 @@ public class UsuarioService {
             );
         }
 
+        Autorizacion.exigirAdmin(SesionActual.getUsuario());
+
+        if (id == SesionActual.getUsuario().getIdUsuario()) {
+            throw new IllegalArgumentException(
+                    "No puede desactivar su propio usuario."
+            );
+        }
+
         repository.desactivar(id);
+
+        // RN-18
+        auditoriaRepository.registrar(
+                SesionActual.getUsuario().getIdUsuario(),
+                AccionAuditoria.USUARIO_DESACTIVADO.name(),
+                "Usuario",
+                id,
+                "Usuario con ID " + id + " desactivado."
+        );
+    }
+
+    // REGISTRAR O REEMPLAZAR ROSTRO (solo ADMIN; abre la cámara en el servicio facial)
+    public String registrarRostro(int idUsuario) {
+
+        Autorizacion.exigirAdmin(SesionActual.getUsuario());
+
+        if (idUsuario <= 0) {
+            throw new IllegalArgumentException(
+                    "Debe seleccionar un usuario."
+            );
+        }
+
+        return new ClienteFacial().registrar(idUsuario, true);
+    }
+
+    // CREAR ADMINISTRADOR INICIAL (solo cuando la tabla Usuario está vacía)
+    public void crearAdministradorInicial(
+            String nombre,
+            String apellido,
+            String usuario,
+            String correo,
+            char[] password
+    ) throws SQLException {
+
+        String error = validarUsuario(
+                nombre, apellido, usuario,
+                correo, password, "ADMIN"
+        );
+
+        if (error != null) {
+            throw new IllegalArgumentException(error);
+        }
+
+        repository.guardarAdministradorInicial(
+                nombre.trim(),
+                apellido.trim(),
+                usuario.trim(),
+                correo.trim(),
+                generarHash(password)
+        );
     }
 
     // VALIDAR ROL Y ESTADO

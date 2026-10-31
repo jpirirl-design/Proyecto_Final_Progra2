@@ -1,4 +1,3 @@
-
 package sigelab.view;
 
 import sigelab.controller.EquipoController;
@@ -31,8 +30,8 @@ public class EquipoView extends JFrame {
 
     public EquipoView() {
         setTitle("SIGELAB - Gestión de Equipos");
-        setSize(1050, 650);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        UiUtil.ajustarAPantalla(this, 1050, 650);
         setLocationRelativeTo(null);
 
         construirInterfaz();
@@ -63,6 +62,9 @@ public class EquipoView extends JFrame {
                 "MANTENIMIENTO",
                 "BAJA"
         });
+        // Solo informativo: el estado cambia por préstamos, devoluciones y mantenimiento.
+        cbEstado.setEnabled(false);
+        cbEstado.setToolTipText("El estado cambia automáticamente por los procesos del sistema.");
 
         formulario.add(new JLabel("Código inventario:"));
         formulario.add(txtCodigo);
@@ -91,17 +93,22 @@ public class EquipoView extends JFrame {
         formulario.add(new JLabel("Observaciones:"));
         formulario.add(txtObservaciones);
 
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
+        JPanel botones = new JPanel(new WrapLayout(FlowLayout.CENTER, 10, 6));
 
         JButton btnGuardar = new JButton("Guardar");
         JButton btnEditar = new JButton("Editar");
         JButton btnBaja = new JButton("Dar de baja");
         JButton btnLimpiar = new JButton("Limpiar");
+        JButton btnQr = new JButton("Ver / guardar QR");
 
         botones.add(btnGuardar);
         botones.add(btnEditar);
         botones.add(btnBaja);
         botones.add(btnLimpiar);
+        botones.add(btnQr);
+        botones.add(UiUtil.botonCerrar(this));
+
+        btnQr.addActionListener(e -> mostrarQr());
 
         JPanel superior = new JPanel(new BorderLayout());
         superior.add(formulario, BorderLayout.CENTER);
@@ -360,6 +367,43 @@ public class EquipoView extends JFrame {
         }
 
         combo.setSelectedIndex(0);
+    }
+
+    // MOSTRAR Y GUARDAR EL QR DEL EQUIPO SELECCIONADO
+    private void mostrarQr() {
+        String codigo = txtCodigo.getText().trim();
+
+        if (idSeleccionado <= 0 || codigo.isEmpty()) {
+            mostrarError("Seleccione un equipo de la tabla.");
+            return;
+        }
+
+        try {
+            ImageIcon imagen = new ImageIcon(controller.generarQr(codigo));
+            Object[] opciones = {"Guardar PNG", "Cerrar"};
+
+            int opcion = JOptionPane.showOptionDialog(
+                    this,
+                    new JLabel(codigo, imagen, SwingConstants.CENTER),
+                    "QR del equipo " + codigo,
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]
+            );
+
+            if (opcion == 0) {
+                JFileChooser selector = new JFileChooser();
+                selector.setSelectedFile(new java.io.File("qr-equipos", codigo + ".png"));
+                if (selector.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                    java.io.File archivo = controller.guardarQr(codigo, selector.getSelectedFile());
+                    JOptionPane.showMessageDialog(this, "QR guardado en:\n" + archivo.getAbsolutePath());
+                }
+            }
+        } catch (RuntimeException ex) {
+            mostrarError(ex.getMessage());
+        }
     }
 
     private void limpiarFormulario() {

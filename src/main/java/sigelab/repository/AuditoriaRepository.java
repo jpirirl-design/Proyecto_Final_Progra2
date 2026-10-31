@@ -1,5 +1,6 @@
 package sigelab.repository;
 
+import sigelab.config.ConexionDB;
 import sigelab.exception.DataAccessException;
 
 import java.sql.Connection;
@@ -25,6 +26,16 @@ public class AuditoriaRepository {
             if (idRegistro == null) ps.setNull(5, Types.INTEGER); else ps.setInt(5, idRegistro);
             ps.setString(6, descripcion);
             ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("No se pudo registrar la auditoría.", e);
+        }
+    }
+
+    /** Para eventos que no forman parte de otra transacción (login, desactivar usuario). */
+    public void registrar(Integer idUsuario, String accion, String entidad,
+                          Integer idRegistro, String descripcion) {
+        try (Connection con = ConexionDB.conectar()) {
+            registrar(con, idUsuario, accion, entidad, idRegistro, descripcion);
         } catch (SQLException e) {
             throw new DataAccessException("No se pudo registrar la auditoría.", e);
         }

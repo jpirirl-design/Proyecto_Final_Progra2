@@ -93,8 +93,8 @@ public class EquipoService {
             throw new IllegalArgumentException(error);
         }
 
-        validarEstado(estado);
-
+        // Un equipo nuevo siempre nace DISPONIBLE; después su estado
+        // solo cambia por procesos (préstamo, devolución, mantenimiento, baja).
         repository.guardar(
                 codigo.trim(),
                 nombre.trim(),
@@ -103,7 +103,7 @@ public class EquipoService {
                 marca.trim(),
                 modelo.trim(),
                 serie.trim(),
-                estado,
+                "DISPONIBLE",
                 observaciones
         );
     }
@@ -135,8 +135,8 @@ public class EquipoService {
             throw new IllegalArgumentException(error);
         }
 
-        validarEstado(estado);
-
+        // El estado NO se edita aquí (RN-09, RN-12, RN-13, RN-15):
+        // el repositorio actualiza solo los datos descriptivos.
         repository.editar(
                 id,
                 codigo.trim(),
@@ -146,7 +146,6 @@ public class EquipoService {
                 marca.trim(),
                 modelo.trim(),
                 serie.trim(),
-                estado,
                 observaciones
         );
     }
@@ -154,22 +153,5 @@ public class EquipoService {
     // DAR DE BAJA
     public void darDeBaja(int id) throws SQLException {
         repository.darDeBaja(id);
-    }
-
-    // VALIDAR ESTADO
-    private void validarEstado(String estado) {
-
-        if (!List.of(
-                "DISPONIBLE",
-                "PRESTADO",
-                "DAÑADO",
-                "MANTENIMIENTO",
-                "BAJA"
-        ).contains(estado)) {
-
-            throw new IllegalArgumentException(
-                    "El estado del equipo no es válido."
-            );
-        }
     }
 }

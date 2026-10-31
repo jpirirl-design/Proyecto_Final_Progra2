@@ -1,7 +1,10 @@
-
 package sigelab.controller;
 
+import sigelab.qr.GeneradorQR;
 import sigelab.service.EquipoService;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -103,5 +106,16 @@ public class EquipoController {
     // DAR DE BAJA UN EQUIPO
     public void darDeBaja(int id) throws SQLException {
         service.darDeBaja(id);
+    }
+
+    // ----- QR del equipo (contiene solo el código de inventario) -----
+    private final GeneradorQR generadorQR = new GeneradorQR();
+
+    public BufferedImage generarQr(String codigoInventario) {
+        return generadorQR.generar(codigoInventario, 300);
+    }
+
+    public File guardarQr(String codigoInventario, File destino) {
+        return generadorQR.guardarPng(codigoInventario, destino);
     }
 }

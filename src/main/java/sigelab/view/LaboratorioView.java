@@ -1,4 +1,3 @@
-
 package sigelab.view;
 
 import sigelab.controller.LaboratorioController;
@@ -23,9 +22,8 @@ public class LaboratorioView extends JFrame {
 
     public LaboratorioView() {
         setTitle("SIGELAB - Gestión de Laboratorios");
-        setSize(850, 550);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        UiUtil.ajustarAPantalla(this, 850, 580);
 
         JPanel principal = new JPanel(new BorderLayout(10, 10));
         principal.setBorder(
@@ -165,11 +163,9 @@ public class LaboratorioView extends JFrame {
 
         btnLimpiar.addActionListener(e -> limpiar());
 
-        JPanel botones = new JPanel(new FlowLayout());
-        botones.add(btnGuardar);
-        botones.add(btnEditar);
-        botones.add(btnDesactivar);
-        botones.add(btnLimpiar);
+        JPanel botones = UiUtil.panelBotones(
+                btnGuardar, btnEditar, btnDesactivar, btnLimpiar,
+                UiUtil.botonCerrar(this));
 
         JPanel superior = new JPanel(new BorderLayout(10, 10));
         superior.add(formulario, BorderLayout.CENTER);

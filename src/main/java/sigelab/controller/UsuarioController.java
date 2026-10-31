@@ -99,4 +99,9 @@ public class UsuarioController {
 
         service.desactivarUsuario(id);
     }
+
+    // REGISTRAR ROSTRO PARA EL LOGIN FACIAL
+    public String registrarRostro(int idUsuario) {
+        return service.registrarRostro(idUsuario);
+    }
 }

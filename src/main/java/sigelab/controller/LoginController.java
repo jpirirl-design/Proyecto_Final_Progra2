@@ -35,4 +35,25 @@ public class LoginController {
                 password
         );
     }
+
+    // REGISTRAR ROSTRO POR PRIMERA VEZ (con usuario y contraseña)
+    public String registrarRostroInicial(
+            String usuario,
+            char[] password
+    ) throws SQLException {
+        return service.registrarRostroInicial(usuario, password);
+    }
+
+    // CREAR ADMINISTRADOR INICIAL (solo si no existen usuarios)
+    public void crearAdministradorInicial(
+            String nombre,
+            String apellido,
+            String usuario,
+            String correo,
+            char[] password
+    ) throws SQLException {
+        new sigelab.service.UsuarioService().crearAdministradorInicial(
+                nombre, apellido, usuario, correo, password
+        );
+    }
 }

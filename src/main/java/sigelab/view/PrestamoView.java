@@ -37,8 +37,8 @@ public class PrestamoView extends JFrame {
 
     public PrestamoView() {
         setTitle("SIGELAB - Registrar préstamo");
-        setSize(900, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        UiUtil.ajustarAPantalla(this, 950, 620);
         setLocationRelativeTo(null);
 
         construirInterfaz();
@@ -74,7 +74,7 @@ public class PrestamoView extends JFrame {
         JButton btnQr = new JButton("Leer QR desde imagen...");
         JButton btnQuitar = new JButton("Quitar seleccionado");
 
-        JPanel agregar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel agregar = new JPanel(new WrapLayout(FlowLayout.LEFT, 10, 5));
         agregar.setBorder(BorderFactory.createTitledBorder("Equipos del préstamo"));
         agregar.add(new JLabel("Código del equipo:"));
         agregar.add(txtCodigo);
@@ -101,7 +101,7 @@ public class PrestamoView extends JFrame {
         JButton btnLimpiar = new JButton("Limpiar");
         JButton btnCerrar = new JButton("Cerrar");
 
-        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
+        JPanel botones = new JPanel(new WrapLayout(FlowLayout.CENTER, 10, 6));
         botones.add(btnConfirmar);
         botones.add(btnLimpiar);
         botones.add(btnCerrar);
